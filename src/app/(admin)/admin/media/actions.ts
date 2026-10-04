@@ -3,10 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
 import { randomBytes } from "crypto";
-import { existsSync } from "fs";
+import { supabase } from "@/lib/supabase";
 
 export async function uploadMedia(formData: FormData) {
   await requirePermission("manage_media");
@@ -26,19 +24,27 @@ export async function uploadMedia(formData: FormData) {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
-  // Use public/uploads for local development
-  const uploadDir = join(process.cwd(), "public", "uploads");
-  if (!existsSync(uploadDir)) {
-    await mkdir(uploadDir, { recursive: true });
-  }
-
   const ext = file.name.split('.').pop() || "bin";
   const filename = `${randomBytes(16).toString("hex")}.${ext}`;
-  const path = join(uploadDir, filename);
 
-  await writeFile(path, buffer);
+  const { data, error } = await supabase.storage
+    .from("media")
+    .upload(filename, buffer, {
+      contentType: file.type,
+      upsert: false,
+    });
 
-  const url = `/uploads/${filename}`;
+  if (error) {
+    console.error("Supabase Storage error:", error);
+    throw new Error("Failed to upload to Supabase Storage");
+  }
+
+  // Get the public URL for the file
+  const { data: urlData } = supabase.storage
+    .from("media")
+    .getPublicUrl(filename);
+    
+  const url = urlData.publicUrl;
 
   await prisma.mediaAsset.create({
     data: {
@@ -57,8 +63,20 @@ export async function uploadMedia(formData: FormData) {
 export async function deleteMedia(id: string) {
   await requirePermission("manage_media");
   
-  // Note: in a real production system, you'd delete the file from the filesystem/S3 too.
-  await prisma.mediaAsset.delete({ where: { id } });
+  const asset = await prisma.mediaAsset.findUnique({ where: { id } });
+  if (asset) {
+    // Delete from Supabase Storage
+    const { error } = await supabase.storage
+      .from("media")
+      .remove([asset.filename]);
+      
+    if (error) {
+      console.error("Error deleting from Supabase:", error);
+      // We log but continue to delete from DB to avoid ghost records
+    }
+    
+    await prisma.mediaAsset.delete({ where: { id } });
+  }
   
   revalidatePath("/admin/media");
 }
