@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 
-export async function submitInquiry(data: any) {
+export async function submitInquiry(data: Record<string, any>) {
   try {
     // Basic validation
     if (!data.email || !data.name) {

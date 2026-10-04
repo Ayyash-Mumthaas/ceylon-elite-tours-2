@@ -5,9 +5,9 @@ import { submitInquiry } from "@/app/actions/inquiry";
 import Link from "next/link";
 
 type Props = {
-  destinations: any[];
-  experiences: any[];
-  vehicles: any[];
+  destinations: { id: string; name: string; region?: string | null; heroImageId?: string | null }[];
+  experiences: { id: string; name: string }[];
+  vehicles: { id: string; category: string; name: string }[];
 };
 
 export function PlannerForm({ destinations, experiences, vehicles }: Props) {
@@ -208,7 +208,7 @@ export function PlannerForm({ destinations, experiences, vehicles }: Props) {
         {step === 3 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h2 className="text-2xl font-display font-semibold mb-2">Where would you like to go?</h2>
-            <p className="text-gray-500 text-sm mb-6">Select the destinations you're most interested in visiting, or leave blank if you'd like our recommendations.</p>
+            <p className="text-gray-500 text-sm mb-6">Select the destinations you&apos;re most interested in visiting, or leave blank if you&apos;d like our recommendations.</p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto pr-2">
               {destinations.map(dest => (
@@ -241,7 +241,7 @@ export function PlannerForm({ destinations, experiences, vehicles }: Props) {
         {step === 4 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h2 className="text-2xl font-display font-semibold mb-2">What interests you?</h2>
-            <p className="text-gray-500 text-sm mb-6">Select the types of experiences you'd like us to include.</p>
+            <p className="text-gray-500 text-sm mb-6">Select the types of experiences you&apos;d like us to include.</p>
             
             <div className="flex flex-wrap gap-3">
               {experiences.map(exp => (

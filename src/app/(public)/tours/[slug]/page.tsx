@@ -116,7 +116,7 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
             <h2 className="text-2xl font-display font-semibold mb-8">Itinerary</h2>
             {itinerary.length > 0 ? (
               <div className="space-y-8">
-                {itinerary.map((day: any, i: number) => (
+                {itinerary.map((day: { day?: string | number, title?: string, description?: string }, i: number) => (
                   <div key={i} className="flex gap-6">
                     <div className="flex-shrink-0 w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center font-display font-semibold text-xl">
                       {day.day || i + 1}
