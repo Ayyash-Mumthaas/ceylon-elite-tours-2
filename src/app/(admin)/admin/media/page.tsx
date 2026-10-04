@@ -1,3 +1,4 @@
+import { DeleteButton } from "@/components/delete-button";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { uploadMedia, deleteMedia } from "./actions";
@@ -60,9 +61,7 @@ export default async function MediaLibraryPage() {
                 </div>
                 
                 <form action={deleteMedia.bind(null, item.id)} className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button type="submit" className="text-red-600 hover:text-red-800" onClick={e => { if (!confirm('Are you sure? This may break pages where this image is used.')) e.preventDefault(); }}>
-                    Delete
-                  </button>
+                  <DeleteButton message="Are you sure? This may break pages where this image is used." className="text-red-600 hover:text-red-800" />
                 </form>
               </div>
             </div>

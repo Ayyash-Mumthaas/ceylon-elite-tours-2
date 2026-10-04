@@ -1,3 +1,4 @@
+import { DeleteButton } from "@/components/delete-button";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { requirePermission } from "@/lib/auth";
@@ -69,19 +70,7 @@ export default async function ToursListPage() {
                       Edit
                     </Link>
                     <form action={duplicateTour.bind(null, tour.id)} className="inline">
-                      <button className="text-gray-600 hover:text-gray-900">Duplicate</button>
-                    </form>
-                    <form action={deleteTour.bind(null, tour.id)} className="inline">
-                      <button 
-                        className="text-red-600 hover:text-red-900"
-                        onClick={(e) => {
-                          if (!confirm("Are you sure you want to delete this tour? This cannot be undone.")) {
-                            e.preventDefault();
-                          }
-                        }}
-                      >
-                        Delete
-                      </button>
+                      <DeleteButton message="Are you sure you want to delete this tour? This cannot be undone." />
                     </form>
                   </td>
                 </tr>

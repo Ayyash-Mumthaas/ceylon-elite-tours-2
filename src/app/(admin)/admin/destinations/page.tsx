@@ -1,3 +1,4 @@
+import { DeleteButton } from "@/components/delete-button";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { requirePermission } from "@/lib/auth";
@@ -65,16 +66,7 @@ export default async function DestinationsListPage() {
                       Edit
                     </Link>
                     <form action={deleteDestination.bind(null, destination.id)} className="inline">
-                      <button 
-                        className="text-red-600 hover:text-red-900"
-                        onClick={(e) => {
-                          if (!confirm("Are you sure you want to delete this destination?")) {
-                            e.preventDefault();
-                          }
-                        }}
-                      >
-                        Delete
-                      </button>
+                      <DeleteButton message="Are you sure you want to delete this destination?" />
                     </form>
                   </td>
                 </tr>

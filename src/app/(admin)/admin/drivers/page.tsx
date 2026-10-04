@@ -1,3 +1,4 @@
+import { DeleteButton } from "@/components/delete-button";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { requirePermission } from "@/lib/auth";
@@ -45,7 +46,7 @@ export default async function DriversListPage() {
                   <td className="px-6 py-4 text-right text-sm space-x-3">
                     <Link href={`/admin/drivers/${d.id}`} className="text-blue-600 hover:text-blue-900">Edit</Link>
                     <form action={deleteDriver.bind(null, d.id)} className="inline">
-                      <button className="text-red-600 hover:text-red-900" onClick={(e) => { if (!confirm("Are you sure?")) e.preventDefault(); }}>Delete</button>
+                      <DeleteButton message="Are you sure?" />
                     </form>
                   </td>
                 </tr>
