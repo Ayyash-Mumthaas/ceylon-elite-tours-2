@@ -3,7 +3,7 @@ import { requirePermission } from "@/lib/auth";
 import Link from "next/link";
 
 export default async function UsersListPage() {
-  await requirePermission("manage_settings"); // Usually SUPER_ADMIN
+  await requirePermission("manage_users");
 
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },

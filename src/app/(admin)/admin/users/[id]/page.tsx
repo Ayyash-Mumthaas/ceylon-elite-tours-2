@@ -5,7 +5,7 @@ import { saveUser } from "../actions";
 import Link from "next/link";
 
 export default async function UserEditPage({ params }: { params: Promise<{ id: string }> }) {
-  await requirePermission("manage_settings");
+  await requirePermission("manage_users");
   const { id } = await params;
   const isNew = id === "new";
   

@@ -10,7 +10,7 @@ import { hash } from "bcryptjs"; // Needs to be installed, or we use what's avai
 
 export async function saveUser(formData: FormData) {
   const adminUser = await requireUser();
-  await requirePermission("manage_settings");
+  await requirePermission("manage_users");
 
   const id = formData.get("id") as string;
   const isNew = !id || id === "new";
@@ -18,6 +18,10 @@ export async function saveUser(formData: FormData) {
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
   const role = formData.get("role") as string;
+
+  if (role === "SUPER_ADMIN" && adminUser.role !== "SUPER_ADMIN") {
+    throw new Error("Only a SUPER_ADMIN can assign the SUPER_ADMIN role.");
+  }
 
   if (isNew) {
     // Basic password for new users. In a real system, send invite email.
