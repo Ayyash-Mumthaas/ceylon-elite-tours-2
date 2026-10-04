@@ -1,0 +1,728 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  name            String
+  passwordHash    String
+  role            String    @default("VIEWER")
+  isActive        Boolean   @default(true)
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  sessions        Session[]
+  assignedInquiries Inquiry[] @relation("InquiryStaff")
+  assignedBookings  Booking[] @relation("BookingStaff")
+  auditLogs       AuditLog[]
+  journalPosts    JournalPost[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  ip        String
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@index([ip, createdAt])
+}
+
+model Customer {
+  id                 String       @id @default(cuid())
+  name               String
+  email              String
+  phone              String?
+  whatsapp           String?
+  country            String?
+  preferredLanguage  String       @default("en")
+  preferredContact   String?
+  tagsJson           String       @default("[]")
+  notes              String?
+  consentMarketing   Boolean      @default(false)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  deletedAt          DateTime?
+  inquiries          Inquiry[]
+  quotations         Quotation[]
+  bookings           Booking[]
+  communications     Communication[]
+
+  @@index([email])
+  @@index([name])
+}
+
+model Inquiry {
+  id                   String   @id @default(cuid())
+  reference            String   @unique
+  customerId           String
+  customer             Customer @relation(fields: [customerId], references: [id])
+  status               String   @default("NEW")
+  travelStart          DateTime?
+  travelEnd            DateTime?
+  adults               Int      @default(1)
+  children             Int      @default(0)
+  travellerType        String?
+  durationNote         String?
+  vehicleCategory      String?
+  accommodation        String?
+  budgetRange          String?
+  specialRequirements  String?
+  source               String   @default("website")
+  assignedStaffId      String?
+  assignedStaff        User?    @relation("InquiryStaff", fields: [assignedStaffId], references: [id])
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  destinations         InquiryDestination[]
+  experiences          InquiryExperience[]
+  history              InquiryHistory[]
+  quotations           Quotation[]
+  bookings             Booking[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([customerId])
+}
+
+model InquiryDestination {
+  id            String      @id @default(cuid())
+  inquiryId     String
+  inquiry       Inquiry     @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  destinationId String
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  @@unique([inquiryId, destinationId])
+}
+
+model InquiryExperience {
+  id           String     @id @default(cuid())
+  inquiryId    String
+  inquiry      Inquiry    @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  experienceId String
+  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@unique([inquiryId, experienceId])
+}
+
+model InquiryHistory {
+  id        String   @id @default(cuid())
+  inquiryId String
+  inquiry   Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  actor     String?
+  action    String
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model Quotation {
+  id                String   @id @default(cuid())
+  reference         String   @unique
+  publicToken       String   @unique
+  customerId        String
+  customer          Customer @relation(fields: [customerId], references: [id])
+  inquiryId         String?
+  inquiry           Inquiry? @relation(fields: [inquiryId], references: [id])
+  bookingId         String?
+  status            String   @default("DRAFT")
+  travelStart       DateTime?
+  travelEnd         DateTime?
+  travellers        Int      @default(1)
+  destinationsNote  String?
+  servicesJson      String   @default("[]")
+  vehicleNote       String?
+  accommodationNote String?
+  activitiesNote    String?
+  otherNote         String?
+  subtotal          Float    @default(0)
+  discount          Float    @default(0)
+  tax               Float    @default(0)
+  total             Float    @default(0)
+  currency          String   @default("USD")
+  paymentTerms      String?
+  validUntil        DateTime?
+  notes             String?
+  customerNotes     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  items             QuotationItem[]
+  bookings          Booking[]
+
+  @@index([status])
+  @@index([customerId])
+}
+
+model QuotationItem {
+  id           String    @id @default(cuid())
+  quotationId  String
+  quotation    Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  description  String
+  quantity     Int       @default(1)
+  unitAmount   Float     @default(0)
+  amount       Float     @default(0)
+  sortOrder    Int       @default(0)
+}
+
+model BookingStatus {
+  id          String  @id @default(cuid())
+  code        String  @unique
+  name        String
+  color       String  @default("#b58a4a")
+  description String?
+  sortOrder   Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model Booking {
+  id                      String    @id @default(cuid())
+  reference               String    @unique
+  customerId              String
+  customer                Customer  @relation(fields: [customerId], references: [id])
+  inquiryId               String?
+  inquiry                 Inquiry?  @relation(fields: [inquiryId], references: [id])
+  quotationId             String?
+  quotation               Quotation? @relation(fields: [quotationId], references: [id])
+  tourId                  String?
+  tour                    Tour?     @relation(fields: [tourId], references: [id])
+  status                  String    @default("NEW")
+  paymentStatus           String    @default("UNPAID")
+  source                  String    @default("inquiry")
+  travelStart             DateTime?
+  travelEnd               DateTime?
+  pickupLocation          String?
+  dropoffLocation         String?
+  pickupTime              String?
+  adults                  Int       @default(1)
+  children                Int       @default(0)
+  destinationsNote        String?
+  customItinerary         String?
+  vehicleCategory         String?
+  vehicleRequired         Boolean   @default(true)
+  accommodation           String?
+  activities              String?
+  specialRequests         String?
+  quotedAmount            Float     @default(0)
+  currency                String    @default("USD")
+  depositRequired         Float     @default(0)
+  depositReceived         Float     @default(0)
+  balance                 Float     @default(0)
+  assignedStaffId         String?
+  assignedStaff           User?     @relation("BookingStaff", fields: [assignedStaffId], references: [id])
+  assignedVehicleId       String?
+  assignedVehicle         Vehicle?  @relation(fields: [assignedVehicleId], references: [id])
+  assignedDriverId        String?
+  assignedDriver          Driver?   @relation(fields: [assignedDriverId], references: [id])
+  internalNotes           String?
+  customerNotes           String?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  deletedAt               DateTime?
+  timeline                BookingTimeline[]
+  vehicleRequests         BookingVehicleRequest[]
+  payments                Payment[]
+  communications          Communication[]
+
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([travelStart])
+  @@index([customerId])
+}
+
+model BookingTimeline {
+  id        String   @id @default(cuid())
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  actor     String?
+  event     String
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model BookingVehicleRequest {
+  id            String   @id @default(cuid())
+  bookingId     String
+  booking       Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  category      String
+  status        String   @default("PENDING")
+  supplierName  String?
+  supplierNotes String?
+  costInternal  Float?
+  offerNotes    String?
+  requestedAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Driver {
+  id               String    @id @default(cuid())
+  name             String
+  phone            String?
+  licenseInfo      String?
+  vehicleNote      String?
+  availability     String?
+  status           String    @default("ACTIVE")
+  notes            String?
+  publicDisplay    Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  bookings         Booking[]
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  bookingId     String
+  booking       Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  amount        Float
+  currency      String   @default("USD")
+  method        String?
+  status        String   @default("RECORDED")
+  paidAt        DateTime?
+  referenceNo   String?
+  notes         String?
+  createdAt     DateTime @default(now())
+}
+
+model Communication {
+  id          String    @id @default(cuid())
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id])
+  bookingId   String?
+  booking     Booking?  @relation(fields: [bookingId], references: [id])
+  channel     String
+  direction   String
+  subject     String?
+  body        String
+  createdAt   DateTime  @default(now())
+}
+
+model Tour {
+  id                 String   @id @default(cuid())
+  title              String
+  slug               String   @unique
+  shortDescription   String
+  fullDescription    String
+  heroImageId        String?
+  galleryJson        String   @default("[]")
+  duration           String?
+  startingLocation   String?
+  endingLocation     String?
+  vehicleCategory    String?
+  itineraryJson      String   @default("[]")
+  inclusionsJson     String   @default("[]")
+  exclusionsJson     String   @default("[]")
+  importantInfo      String?
+  idealForJson       String   @default("[]")
+  difficulty         String?
+  availabilityNotes  String?
+  priceDisplayMode   String   @default("REQUEST_QUOTE")
+  startingPrice      Float?
+  currency           String   @default("USD")
+  featured           Boolean  @default(false)
+  published          Boolean  @default(false)
+  seoTitle           String?
+  seoDescription     String?
+  socialImageId      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  deletedAt          DateTime?
+  destinations       TourDestination[]
+  experiences        TourExperience[]
+  bookings           Booking[]
+
+  @@index([published, featured])
+  @@index([slug])
+}
+
+model TourDestination {
+  id            String      @id @default(cuid())
+  tourId        String
+  tour          Tour        @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  destinationId String
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  @@unique([tourId, destinationId])
+}
+
+model TourExperience {
+  id           String     @id @default(cuid())
+  tourId       String
+  tour         Tour       @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  experienceId String
+  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@unique([tourId, experienceId])
+}
+
+model Destination {
+  id                   String   @id @default(cuid())
+  name                 String
+  slug                 String   @unique
+  region               String?
+  district             String?
+  shortDescription     String
+  longDescription      String
+  heroImageId          String?
+  galleryJson          String   @default("[]")
+  bestTimeToVisit      String?
+  recommendedDuration  String?
+  attractionsJson      String   @default("[]")
+  travelNotesJson      String   @default("[]")
+  latitude             Float?
+  longitude            Float?
+  featured             Boolean  @default(false)
+  published            Boolean  @default(false)
+  seoTitle             String?
+  seoDescription       String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  deletedAt            DateTime?
+  tours                TourDestination[]
+  experiences          ExperienceDestination[]
+  inquiries            InquiryDestination[]
+
+  @@index([published, featured])
+}
+
+model Experience {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  description      String
+  icon             String?
+  heroImageId      String?
+  galleryJson      String   @default("[]")
+  featured         Boolean  @default(false)
+  published        Boolean  @default(false)
+  seoTitle         String?
+  seoDescription   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime?
+  destinations     ExperienceDestination[]
+  tours            TourExperience[]
+  inquiries        InquiryExperience[]
+}
+
+model ExperienceDestination {
+  id            String      @id @default(cuid())
+  experienceId  String
+  experience    Experience  @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  destinationId String
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  @@unique([experienceId, destinationId])
+}
+
+model Vehicle {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  category         String
+  passengerCapacity Int?
+  luggageCapacity  String?
+  heroImageId      String?
+  galleryJson      String   @default("[]")
+  comfortLevel     String?
+  airConditioning  Boolean  @default(true)
+  featuresJson     String   @default("[]")
+  description      String
+  publicStatus     String   @default("ON_REQUEST")
+  displayPublic    Boolean  @default(true)
+  partnerNotes     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime?
+  bookings         Booking[]
+}
+
+model Review {
+  id          String    @id @default(cuid())
+  customerName String
+  country     String?
+  review      String
+  rating      Int       @default(5)
+  photoUrl    String?
+  reviewDate  DateTime?
+  verified    Boolean   @default(false)
+  featured    Boolean   @default(false)
+  published   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model TrustItem {
+  id          String   @id @default(cuid())
+  type        String
+  title       String
+  description String?
+  imageUrl    String?
+  url         String?
+  published   Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model JournalCategory {
+  id    String        @id @default(cuid())
+  name  String
+  slug  String        @unique
+  posts JournalPost[]
+}
+
+model JournalPost {
+  id             String    @id @default(cuid())
+  title          String
+  slug           String    @unique
+  excerpt        String
+  content        String
+  heroImageId    String?
+  authorId       String?
+  author         User?     @relation(fields: [authorId], references: [id])
+  categoryId     String?
+  category       JournalCategory? @relation(fields: [categoryId], references: [id])
+  tagsJson       String    @default("[]")
+  publishedAt    DateTime?
+  published      Boolean   @default(false)
+  seoTitle       String?
+  seoDescription String?
+  socialImageId  String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+}
+
+model MediaAsset {
+  id            String   @id @default(cuid())
+  filename      String
+  originalName  String
+  mimeType      String
+  sizeBytes     Int
+  width         Int?
+  height        Int?
+  url           String
+  altText       String?
+  caption       String?
+  copyright     String?
+  folder        String   @default("general")
+  tagsJson      String   @default("[]")
+  focalX        Float?
+  focalY        Float?
+  isPrivate     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Page {
+  id             String    @id @default(cuid())
+  title          String
+  slug           String    @unique
+  seoTitle       String?
+  seoDescription String?
+  ogImageId      String?
+  heroHeading    String?
+  heroSubheading String?
+  content        String    @default("")
+  sectionsJson   String    @default("[]")
+  ctaLabel       String?
+  ctaHref        String?
+  template       String    @default("standard")
+  published      Boolean   @default(false)
+  scheduledAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+}
+
+model NavigationItem {
+  id         String  @id @default(cuid())
+  location   String
+  label      String
+  url        String
+  icon       String?
+  parentId   String?
+  parent     NavigationItem?  @relation("NavChildren", fields: [parentId], references: [id])
+  children   NavigationItem[] @relation("NavChildren")
+  sortOrder  Int     @default(0)
+  visible    Boolean @default(true)
+  newTab     Boolean @default(false)
+  isCta      Boolean @default(false)
+}
+
+model SiteSetting {
+  key       String   @id
+  value     String
+  group     String   @default("general")
+  updatedAt DateTime @updatedAt
+}
+
+model HomepageSection {
+  id         String  @id @default(cuid())
+  type       String
+  heading    String?
+  subheading String?
+  body       String?
+  configJson String  @default("{}")
+  visible    Boolean @default(true)
+  sortOrder  Int     @default(0)
+}
+
+model Faq {
+  id         String  @id @default(cuid())
+  question   String
+  answer     String
+  category   String  @default("General")
+  sortOrder  Int     @default(0)
+  published  Boolean @default(false)
+  featured   Boolean @default(false)
+}
+
+model SocialLink {
+  id        String  @id @default(cuid())
+  platform  String
+  label     String
+  url       String
+  visible   Boolean @default(true)
+  sortOrder Int     @default(0)
+}
+
+model ContactMethod {
+  id        String  @id @default(cuid())
+  type      String
+  label     String
+  value     String
+  href      String?
+  visible   Boolean @default(true)
+  sortOrder Int     @default(0)
+}
+
+model LegalDocument {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String
+  content       String
+  version       String    @default("1.0")
+  effectiveDate DateTime?
+  status        String    @default("DRAFT")
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  revisions     LegalRevision[]
+
+  @@unique([slug, version])
+  @@index([slug, status])
+}
+
+model LegalRevision {
+  id         String        @id @default(cuid())
+  documentId String
+  document   LegalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  content    String
+  version    String
+  actor      String?
+  createdAt  DateTime      @default(now())
+}
+
+model CommunicationTemplate {
+  id        String  @id @default(cuid())
+  key       String  @unique
+  name      String
+  subject   String
+  body      String
+  enabled   Boolean @default(true)
+}
+
+model NotificationSetting {
+  id      String  @id @default(cuid())
+  key     String  @unique
+  name    String
+  channel String
+  enabled Boolean @default(true)
+}
+
+model Announcement {
+  id         String    @id @default(cuid())
+  message    String
+  link       String?
+  placement  String    @default("top")
+  visible    Boolean   @default(false)
+  startsAt   DateTime?
+  endsAt     DateTime?
+}
+
+model FeatureFlag {
+  key         String  @id
+  name        String
+  enabled     Boolean @default(true)
+  description String?
+}
+
+model Redirect {
+  id       String  @id @default(cuid())
+  oldUrl   String  @unique
+  newUrl   String
+  status   Int     @default(301)
+  notes    String?
+  active   Boolean @default(true)
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id])
+  actorEmail String?
+  action     String
+  resource   String
+  resourceId String?
+  ip         String?
+  result     String   @default("success")
+  metadata   String   @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([resource])
+  @@index([actorId])
+}
+
+model Sequence {
+  key   String @id
+  value Int    @default(0)
+}
+
+model PasswordReset {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  name      String
+  path      String?
+  meta      String   @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([name, createdAt])
+}
