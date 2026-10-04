@@ -40,5 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.vercel
-.env*
+# local databases
+*.db
+*.db-journal
+
+# scratch pads and scripts
+scratch/
