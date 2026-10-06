@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { getPublicSite, whatsappHref } from '@/lib/public';
-
+import { ClientNav } from './client-nav';
 export async function SiteShell({ children }: { children: ReactNode }) {
   const { settings, nav, social } = await getPublicSite();
 
@@ -11,31 +11,11 @@ export async function SiteShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="site-shell">
-      <header className="topbar">
-        <div className="container nav-shell">
-          <Link href="/" className="brand" aria-label={`${settings.brandName || 'Ceylon Elite Tours'} home`}>
-            <span className="brand-mark">CET</span>
-            <span>
-              <strong>{settings.brandName || 'Ceylon Elite Tours'}</strong>
-              <small>{settings.tagline || 'Private Journeys Across Sri Lanka'}</small>
-            </span>
-          </Link>
-
-          <nav className="main-nav" aria-label="Main navigation">
-            {mainNav.map((item) => (
-              <Link
-                key={item.id}
-                href={item.url}
-                className={item.isCta ? 'button button-primary nav-cta' : 'nav-link'}
-                target={item.newTab ? "_blank" : undefined}
-                rel={item.newTab ? "noreferrer" : undefined}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      </header>
+      <ClientNav 
+        mainNav={mainNav} 
+        brandName={settings.brandName || 'Ceylon Elite Tours'} 
+        tagline={settings.tagline || 'Private Journeys Across Sri Lanka'} 
+      />
 
       <main>{children}</main>
 

@@ -2,6 +2,8 @@
 
 :root {
   --background: #f9f5ef;
+  --bg-top: #f9f5ef;
+  --bg-bottom: #f5efe7;
   --panel: #fffdf9;
   --card: #f4efe8;
   --foreground: #1d1d1b;
@@ -12,6 +14,32 @@
   --olive: #415b49;
   --line: rgba(29, 29, 27, 0.12);
   --shadow: 0 24px 80px rgba(27, 25, 23, 0.12);
+  --topbar-bg: rgba(249, 245, 239, 0.82);
+  --button-text: #fff;
+  --panel-bg: rgba(255,255,255,0.42);
+  --hero-overlay-1: rgba(15,15,15,0.4);
+  --hero-overlay-2: rgba(15,15,15,0.18);
+}
+
+.dark {
+  --background: #121212;
+  --bg-top: #121212;
+  --bg-bottom: #181818;
+  --panel: #1e1e1e;
+  --card: #2c2c2c;
+  --foreground: #ffffff;
+  --muted: #d4d4d4;
+  --sand: #967f56;
+  --gold: #dfb265;
+  --sage: #8bb295;
+  --olive: #a0d8b3;
+  --line: rgba(255, 255, 255, 0.18);
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  --topbar-bg: rgba(18, 18, 18, 0.82);
+  --button-text: #1d1d1b;
+  --panel-bg: rgba(40,40,40,0.7);
+  --hero-overlay-1: rgba(15,15,15,0.7);
+  --hero-overlay-2: rgba(15,15,15,0.5);
 }
 
 html {
@@ -20,7 +48,7 @@ html {
 
 body {
   margin: 0;
-  background: linear-gradient(180deg, #f9f5ef 0%, #f5efe7 100%);
+  background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, sans-serif;
 }
@@ -57,7 +85,7 @@ button, input, select, textarea {
   top: 0;
   z-index: 50;
   backdrop-filter: blur(18px);
-  background: rgba(249, 245, 239, 0.82);
+  background: var(--topbar-bg);
   border-bottom: 1px solid var(--line);
 }
 
@@ -136,8 +164,8 @@ button, input, select, textarea {
 }
 
 .button-primary {
-  background: linear-gradient(135deg, #b58a4a, #d3b16d);
-  color: #fff;
+  background: linear-gradient(135deg, var(--gold), var(--sand));
+  color: var(--button-text);
   padding: 0.92rem 1.5rem;
   font-weight: 700;
   box-shadow: 0 12px 30px rgba(181,138,74,0.24);
@@ -149,14 +177,14 @@ button, input, select, textarea {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: #d9d1c7;
+  background: var(--card);
 }
 
 .hero::before {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(90deg, rgba(15,15,15,0.4), rgba(15,15,15,0.18)), url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1800&q=80');
+  background-image: linear-gradient(90deg, var(--hero-overlay-1), var(--hero-overlay-2)), url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1800&q=80');
   background-size: cover;
   background-position: center;
   transform: scale(1.05);
@@ -261,7 +289,7 @@ button, input, select, textarea {
 }
 
 .story-card, .feature-card, .journey-card, .destination-card, .experience-card, .review-card, .journal-card, .faq-item, .cta-panel {
-  background: rgba(255,255,255,0.42);
+  background: var(--panel-bg);
   border: 1px solid var(--line);
   border-radius: 28px;
   box-shadow: var(--shadow);
@@ -473,7 +501,7 @@ button, input, select, textarea {
 }
 
 .site-footer {
-  background: #1b1b18;
+  background: #111;
   color: rgba(255,255,255,0.8);
   padding: 76px 0 24px;
 }
@@ -526,6 +554,66 @@ button, input, select, textarea {
   color: rgba(255,255,255,0.7);
 }
 
+/* --- Navigation Additions --- */
+.theme-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--foreground);
+  transition: background-color 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background: rgba(128, 128, 128, 0.15);
+}
+
+.mobile-nav-controls {
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-menu-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: var(--foreground);
+  padding: 0.25rem 0.5rem;
+}
+
+.mobile-nav-pane {
+  display: none;
+  flex-direction: column;
+  padding: 1rem 16px;
+  background: var(--topbar-bg);
+  border-bottom: 1px solid var(--line);
+}
+
+.mobile-nav-link {
+  display: block;
+  padding: 12px 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--foreground);
+  border-bottom: 1px solid var(--line);
+}
+
+.mobile-nav-link:last-child {
+  border-bottom: none;
+}
+
+.w-full {
+  width: 100%;
+  margin-top: 12px;
+}
+
 @media (max-width: 980px) {
   .cards-grid, .trust-bar, .timeline, .review-grid, .journal-grid, .faq-grid, .footer-grid, .split-grid {
     grid-template-columns: 1fr 1fr;
@@ -533,6 +621,14 @@ button, input, select, textarea {
 
   .main-nav {
     display: none;
+  }
+
+  .mobile-nav-controls {
+    display: flex;
+  }
+
+  .mobile-nav-pane {
+    display: flex;
   }
 }
 
