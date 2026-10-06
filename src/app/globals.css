@@ -654,3 +654,39 @@ button, input, select, textarea {
     align-items: flex-start;
   }
 }
+
+/* --- Tailwind Hardcoded Color Overrides for Dark Mode --- */
+.dark .bg-white, .dark .bg-gray-50, .dark .bg-gray-100, .dark .bg-gray-200 {
+  background-color: var(--panel) !important;
+}
+.dark .bg-gray-900 {
+  background-color: var(--card) !important;
+}
+.dark .text-black, .dark .text-gray-900, .dark .text-white {
+  color: var(--foreground) !important;
+}
+.dark .text-gray-800, .dark .text-gray-700, .dark .text-gray-600, .dark .text-gray-500, .dark .text-gray-400 {
+  color: var(--muted) !important;
+}
+.dark .border-gray-100, .dark .border-gray-200, .dark .border-gray-300 {
+  border-color: var(--line) !important;
+}
+.dark .bg-black {
+  background-color: var(--gold) !important;
+  color: var(--button-text) !important;
+}
+.dark .hover\:bg-gray-50:hover, .dark .hover\:bg-gray-100:hover {
+  background-color: var(--card) !important;
+}
+.dark .hover\:bg-gray-800:hover {
+  background-color: var(--sand) !important;
+}
+.dark .hover\:text-black:hover {
+  color: var(--foreground) !important;
+}
+.dark .bg-white\/90 {
+  background-color: rgba(30, 30, 30, 0.9) !important;
+}
+.dark .bg-white\/20 {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
